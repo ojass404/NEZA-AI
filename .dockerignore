@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation
+README.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+CHANGELOG.md
+docs/
+mkdocs.yml
+
+# Testing
+tests/
+test/
+*.test.js
+*.spec.js
+
+# Build
+dist/
+build/
+*.log
+*.pid
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+yarn.lock
+
+# Flutter
+frontend/.dart_tool/
+frontend/.packages
+frontend/build/
+frontend/ios/Pods/
+frontend/android/.gradle/
+frontend/pubspec.lock
+
+# ML
+ml_pipeline/data/
+*.pt
+*.pth
+*.h5
+*.onnx
+*.tflite
+*.npy
+*.npz
+
+# Large files
+*.zip
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies
+requirements/
+!requirements/base.txt
+!requirements/prod.txt
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
