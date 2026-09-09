@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: neza_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-neza}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-neza123}
+      POSTGRES_DB: ${DB_NAME:-neza}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-neza}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - neza_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: neza_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - neza_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: neza_backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-neza}:${DB_PASSWORD:-neza123}@postgres:5432/${DB_NAME:-neza}
+      REDIS_URL: redis://redis:6379
+      MODEL_PATH: /app/models
+      DEBUG: ${DEBUG:-false}
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/models:/app/models
+      - backend_uploads:/app/uploads
+      - backend_reports:/app/reports
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - neza_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: neza_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - neza_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_uploads:
+  backend_reports:
+
+networks:
+  neza_network:
+    driver: bridge

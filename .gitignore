@@ -1,236 +1,52 @@
-# ============================================
-# PYTHON
-# ============================================
-
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-*.pyd
-*.pyi
-
-# Distribution / packaging
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-pip-wheel-metadata/
-share/python-wheels/
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-*.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebooks
-.ipynb_checkpoints
-*.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.env.local
-.env.*.local
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
-pythonenv*
-*.pyenv
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+*.log
 
-# Pyre type checker
-.pyre/
-
-# Pyright
-.pyrightconfig.json
-
-# ============================================
-# FASTAPI / BACKEND SPECIFIC
-# ============================================
-
-# Database
+# FastAPI
 *.db
-*.sqlite
 *.sqlite3
-*.db3
-
-# Alembic
 alembic_version
-*.alembic
 
-# Uploaded files
-uploads/
-media/
-static/media/
-
-# Generated reports
-reports/
-*.csv
-*.json
-!configs/*.json
-
-# ============================================
-# ML / AI MODELS
-# ============================================
-
-# Model weights
+# ML Models
 *.pt
 *.pth
-*.pkl
-*.pickle
-*.h5
-*.hdf5
-*.keras
-*.pb
-*.savedmodel
 *.onnx
 *.tflite
-*.tflite.*
-*.param
-*.bin
-*.model
+*.pb
+*.h5
+*.keras
+*.hdf5
+models/
 
-# Dataset files
+# Data
+data/
 ml_pipeline/data/raw/
 ml_pipeline/data/processed/
 ml_pipeline/data/labels/
-!ml_pipeline/data/raw/.gitkeep
-!ml_pipeline/data/processed/.gitkeep
-!ml_pipeline/data/labels/.gitkeep
-
-# Dataset files (exclude if large)
 *.npy
 *.npz
-*.tfrecord
-*.record
-*.lmdb
 
-# TensorFlow
-*.ckpt
-*.meta
-*.index
-*.data-*
-
-# TensorBoard
-tensorboard/
-runs/
-logs/
-*.tfevents.*
-
-# PyTorch
-*.cache
-*.th
-
-# ============================================
-# FLUTTER / FRONTEND
-# ============================================
-
-# Flutter/Dart
+# Flutter
 frontend/.dart_tool/
 frontend/.packages
 frontend/build/
-frontend/.flutter-plugins
-frontend/.flutter-plugins-dependencies
-frontend/pubspec.lock
 frontend/ios/Pods/
 frontend/ios/.symlinks/
 frontend/ios/Flutter/App.framework
@@ -243,374 +59,31 @@ frontend/android/app/debug/
 frontend/android/app/profile/
 frontend/android/app/release/
 frontend/android/app/build/
-frontend/coverage/
+frontend/pubspec.lock
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
 
-# Web related
-frontend/web/
+# Docker
+*.pid
+docker-compose.override.yml
 
-# Test related
-frontend/test/.test_coverage.dart
+# Environment
+.env
+.env.local
+.env.*.local
 
-# Android related
-frontend/android/app/*.iml
-frontend/android/*.iml
-frontend/android/.project
-frontend/android/.classpath
-frontend/android/.settings/
-
-# iOS related
-frontend/ios/Flutter/flutter_export_environment.sh
-frontend/ios/Flutter/.last_build_id
-frontend/ios/Runner.xcworkspace/xcuserdata/
-frontend/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
-frontend/ios/Runner.xcodeproj/xcuserdata/
-frontend/ios/Runner/GeneratedPluginRegistrant.*
-frontend/ios/Podfile.lock
-
-# macOS related
-frontend/macos/Flutter/ephemeral/
-frontend/macos/Runner.xcworkspace/xcuserdata/
-frontend/macos/Runner.xcodeproj/project.xcworkspace/xcuserdata/
-frontend/macos/Runner.xcodeproj/xcuserdata/
-frontend/macos/Flutter/GeneratedPluginRegistrant.swift
-
-# Linux related
-frontend/linux/flutter/ephemeral/
-frontend/linux/CMakeLists.txt
-
-# Windows related
-frontend/windows/flutter/ephemeral/
-frontend/windows/CMakeLists.txt
-
-# ============================================
-# IDE / EDITOR
-# ============================================
-
-# Visual Studio Code
+# IDE
 .vscode/
-*.code-workspace
-.vscode-test/
-
-# IntelliJ IDEA / Android Studio
 .idea/
-*.iml
-*.iws
-*.ipr
-out/
-.idea_modules/
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim
 *.swp
 *.swo
 *~
-*.un~
-*.orig
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-
-# Eclipse
-.project
-.classpath
-.settings/
-bin/
-.metadata/
-
-# Atom
-.atom/
-
-# ============================================
-# OS / SYSTEM
-# ============================================
-
-# macOS
 .DS_Store
-.AppleDouble
-.LSOverride
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msm
-*.msp
-
-# Linux
-.directory
-*.pid
-*.lock
-*.socket
-
-# ============================================
-# DOCKER / CONTAINERS
-# ============================================
-
-# Docker
-docker-compose.override.yml
-docker-compose.dev.yml
-*.pid
-Dockerfile.local
-
-# Kubernetes
-*.secret.yaml
-*.secrets.yaml
-kubeconfig
-!deployment/kubernetes/*.template.yaml
-
-# ============================================
-# LOGS / TEMPORARY
-# ============================================
 
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
 
-# Temporary files
-tmp/
-temp/
-*.tmp
-*.temp
-*.cache
-
-# ============================================
-# SECURITY / SECRETS
-# ============================================
-
-# Secrets
-*.pem
-*.key
-*.crt
-*.csr
-*.p12
-*.pfx
-*.jks
-secrets/
-credentials/
-.credentials
-*.secret
-secrets.yaml
-
-# ============================================
-# BUILD / DISTRIBUTION
-# ============================================
-
-# Build artifacts
-*.min.js
-*.min.css
-dist/
-build/
-out/
-target/
-bin/
-obj/
-
-# Production builds
-/backend/dist/
-/backend/build/
-
-# ============================================
-# NODE (if used)
-# ============================================
-
-# Node modules
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-# ============================================
-# MISCELLANEOUS
-# ============================================
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# Typings
-*.d.ts
-typings/
-
-# yarn
-.yarn/
-.yarnrc
-.yarn-integrity
-.pnp.*
-.pnp.js
-
-# Next.js
-.next/
-out/
-.nuxt/
-.cache/
-
-# Gatsby
-.cache/
-public/
-
-# Storybook
-storybook-static/
-
-# Remix
-build/
-public/build/
-
-# Expo
-.expo/
-dist/
-
-# Capacitor
-www/
-android/
-ios/
-
-# Cordova
-platforms/
-plugins/
-www/
-
-# ============================================
-# NEZA AI SPECIFIC
-# ============================================
-
-# Models directory (keep only configs)
-backend/models/*.pt
-backend/models/*.pth
-backend/models/*.onnx
-backend/models/*.tflite
-!backend/models/configs/
-
-# Uploads directory
-backend/uploads/
-frontend/uploads/
-*.xtf
-*.jsf
-*.sonar
-!sample_data/
-
-# Reports directory
-backend/reports/
-*.html
-!docs/
-
-# ML Data (large files)
-ml_pipeline/data/
-*.zip
-*.tar.gz
-*.tgz
-*.7z
-*.rar
-
-# Jupyter notebooks (optional - keep or ignore)
-# !ml_pipeline/notebooks/*.ipynb
-
-# Celery
-celerybeat-schedule.db
-celerybeat.pid
-
-# ============================================
-# GIT
-# ============================================
-
-# Git
-*.patch
-*.diff
-*.orig
-.gitattributes
-.gitmodules
-
-# ============================================
-# DATABASE BACKUPS
-# ============================================
-
-*.sql
-*.sql.gz
-*.dump
-*.backup
-*.bak
-
-# ============================================
-# ENVIRONMENT FILES
-# ============================================
-
-# Don't commit environment files
-.env
-.env.*
-!.env.example
-!.env.sample
-.env.local
-.env.*.local
-.env.production
-.env.staging
-.env.development
-development.env
-production.env
-staging.env
-
-# ============================================
-# TESTING
-# ============================================
-
-# Test artifacts
-test-results/
-test-reports/
-junit.xml
-test_output/
-
-# ============================================
-# MISC - KEEP FOLDER STRUCTURE
-# ============================================
-
-# Keep empty directories
-!.gitkeep
-!**/.gitkeep
-
-# ============================================
-# EXCEPTIONS - FILES TO KEEP
-# ============================================
-
-# Keep sample data (small)
-!sample_data/
-!sample_data/*.png
-!sample_data/*.jpg
-!sample_data/*.jpeg
-!sample_data/*.tiff
-!sample_data/*.json
-!sample_data/*.csv
-
-# Keep small test files
-!tests/fixtures/
-!tests/fixtures/*.png
-!tests/fixtures/*.jpg
-!**/fixtures/*.png
-!**/fixtures/*.jpg
+# Uploads
+uploads/
+reports/
