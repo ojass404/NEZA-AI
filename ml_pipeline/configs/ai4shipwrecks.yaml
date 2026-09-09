@@ -1,0 +1,14 @@
+# Dataset configuration for AI4Shipwrecks
+path: /Users/ojasmahajan/Public/Projects/NEZA-AI/ml_pipeline/data/raw/ai4shipwrecks/_data/AI4Shipwrecks
+train: images/train
+val: images/val
+test: images/test
+
+# Classes
+names:
+  0: shipwreck
+  1: rock
+  2: sand
+  3: seabed
+
+nc: 4

@@ -1,0 +1,9 @@
+# Simple test dataset
+path: /Users/ojasmahajan/Public/Projects/NEZA-AI/ml_pipeline/data/raw/ai4shipwrecks/_data/AI4Shipwrecks
+train: extras/terrain/images
+val: extras/terrain/images
+
+names:
+  0: shipwreck
+
+nc: 1

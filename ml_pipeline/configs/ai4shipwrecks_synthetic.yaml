@@ -1,0 +1,9 @@
+# AI4Shipwrecks Synthetic Dataset
+path: /Users/ojasmahajan/Public/Projects/NEZA-AI/ml_pipeline/data/processed/ai4shipwrecks_synthetic
+train: train/images
+val: val/images
+
+nc: 2
+names:
+  0: shipwreck
+  1: other
