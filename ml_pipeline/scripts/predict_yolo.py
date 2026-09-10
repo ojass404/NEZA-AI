@@ -107,7 +107,10 @@ def main() -> None:
             "IoU must be between 0 and 1."
         )
 
-    device = select_device()
+    if model_path.suffix.lower() == ".onnx":
+        device = "cpu"
+    else:
+        device = select_device()
 
     timestamp = datetime.now(
         timezone.utc
