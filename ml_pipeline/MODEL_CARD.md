@@ -134,3 +134,31 @@ python scripts/evaluate_yolo.py \
   --confidence 0.10
 
 python scripts/export_yolo.py
+
+## Preprocessing Validation
+
+The optional median, bilateral, and CLAHE preprocessing pipeline was
+evaluated on the complete validation split at confidence 0.10 and IoU 0.50.
+
+| Input | Precision | Recall | F1 |
+|---|---:|---:|---:|
+| Raw sonar images | 0.6316 | 0.7059 | 0.6667 |
+| Preprocessed images | 0.3333 | 0.5294 | 0.4091 |
+
+Preprocessing increased false positives from 7 to 18 and reduced true
+positives from 12 to 9. Therefore, preprocessing is available only as an
+experimental module and is disabled during operational inference.
+
+The model must continue receiving raw sonar imagery until a preprocessing
+configuration is validated through retraining and untouched-test evaluation.
+
+## Backend Safety Decisions
+
+- Missing model files raise an explicit error.
+- Generic YOLO weights are never substituted automatically.
+- PyTorch inference supports CUDA, Apple MPS, and CPU.
+- ONNX inference uses CPU.
+- Model confidence is reported without artificial modification.
+- Unverified U-Net segmentation is disabled.
+- Unsupported debris classes are not generated.
+- Every candidate requires human verification.
