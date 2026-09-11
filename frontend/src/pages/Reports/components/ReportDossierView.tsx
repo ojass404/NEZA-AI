@@ -40,7 +40,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
             <span className="font-mono text-xs font-bold text-white/70">
               DOSSIER {report.id}
             </span>
-            <DemoBadge text="OFFICIAL NIOT / MoES FORMAT" />
+            <DemoBadge text="NEZA AI REVIEW REPORT" />
           </div>
 
           <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
               <span>Download Export</span>
             </button>
             <button
-              onClick={onClose}
+              aria-label="Close report" onClick={onClose}
               className="p-1.5 rounded-lg text-white/30 hover:text-white hover:bg-white/8 transition-colors ml-2"
             >
               <X className="w-5 h-5" />
@@ -113,7 +113,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
             <div className="p-3 bg-white/4 border border-white/10 rounded-xl">
               <span className="text-[10px] text-white/35 uppercase block font-semibold">Verified</span>
               <span className="text-lg font-bold text-white">
-                {detections.filter((d) => d.verificationStatus === 'VERIFIED').length}
+                {detections.filter((d) => d.verificationStatus === 'CONFIRMED').length}
               </span>
             </div>
             <div className="p-3 bg-white/4 border border-white/10 rounded-xl">
@@ -148,7 +148,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
                     </div>
                     <div className="text-right font-mono text-[11px]">
                       <div className="text-white/40">
-                        {det.latitude?.toFixed(4)}°N, {det.longitude?.toFixed(4)}°E
+                        {det.latitude?.toFixed(4)}°, {det.longitude?.toFixed(4)}°
                       </div>
                       <div className="mt-1">
                         <VerificationBadge status={det.verificationStatus} />
@@ -172,7 +172,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
                     <th className="p-2.5">Classification</th>
                     <th className="p-2.5">Confidence</th>
                     <th className="p-2.5">Priority</th>
-                    <th className="p-2.5">Coordinates (Demo)</th>
+                    <th className="p-2.5">Frame GPS</th>
                     <th className="p-2.5">Verification</th>
                   </tr>
                 </thead>
@@ -183,7 +183,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
                       <td className="p-2.5 font-sans font-medium text-white/60">{det.classification}</td>
                       <td className="p-2.5 text-white/50">{Math.round(det.confidence * 100)}%</td>
                       <td className="p-2.5"><PriorityBadge priority={det.priority} showIcon={false} /></td>
-                      <td className="p-2.5 text-white/40">{det.latitude?.toFixed(4)}°N, {det.longitude?.toFixed(4)}°E</td>
+                      <td className="p-2.5 text-white/40">{det.latitude?.toFixed(4)}°, {det.longitude?.toFixed(4)}°</td>
                       <td className="p-2.5"><VerificationBadge status={det.verificationStatus} /></td>
                     </tr>
                   ))}

@@ -14,10 +14,10 @@ export const DashboardPage: React.FC = () => {
   const pendingVerification = detections.filter((d) => d.verificationStatus === 'PENDING').length;
 
   const stats = [
-    { label: 'Total Scans', value: 24, sub: 'acoustic swaths', icon: Scan, onClick: () => navigate('/sonar-analysis') },
-    { label: 'AI Detections', value: 87, sub: 'seabed anomalies', icon: Target, onClick: () => navigate('/analytics') },
-    { label: 'High Priority', value: 12, sub: 'hazardous debris', icon: AlertTriangle, onClick: () => navigate('/marine-map') },
-    { label: 'Pending Review', value: pendingVerification, sub: 'awaiting analyst', icon: Clock, onClick: () => navigate('/detection/DET-001') },
+    { label: 'Total Scans', value: scans.length, sub: 'acoustic swaths', icon: Scan, onClick: () => navigate('/sonar-analysis') },
+    { label: 'AI Detections', value: detections.length, sub: 'seabed anomalies', icon: Target, onClick: () => navigate('/analytics') },
+    { label: 'High Priority', value: detections.filter(d => d.priority === 'HIGH').length, sub: 'review candidates', icon: AlertTriangle, onClick: () => navigate('/marine-map') },
+    { label: 'Pending Review', value: pendingVerification, sub: 'awaiting analyst', icon: Clock, onClick: () => navigate('/sonar-analysis') },
   ];
 
   const priorityDetections = detections
@@ -25,7 +25,7 @@ export const DashboardPage: React.FC = () => {
     .slice(0, 5);
 
   const verifiedPct = Math.round(
-    (detections.filter((d) => d.verificationStatus === 'VERIFIED').length /
+    (detections.filter((d) => d.verificationStatus === 'CONFIRMED').length /
       Math.max(1, detections.filter((d) => d.verificationStatus !== 'PENDING').length)) * 100
   );
 

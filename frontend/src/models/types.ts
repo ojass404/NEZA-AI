@@ -1,12 +1,14 @@
 export type PriorityLevel = 'HIGH' | 'MEDIUM' | 'LOW';
-export type VerificationStatus = 'PENDING' | 'VERIFIED' | 'REJECTED';
-export type ScanStatus = 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+export type VerificationStatus = 'PENDING' | 'CONFIRMED' | 'REJECTED';
+export type ScanStatus = 'UPLOADED' | 'UPLOADING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
 export interface Detection {
   id: string;
   scanId: string;
   surveyName: string;
   classification: string;
+  geotagMethod?: string;
+  modelName?: string;
   confidence: number; // 0 to 1, e.g. 0.92
   priority: PriorityLevel;
   bbox: [number, number, number, number]; // [x, y, width, height] in pixel coordinates
@@ -14,9 +16,9 @@ export interface Detection {
   longitude: number | null; // Demo coordinates
   depth: number | null; // meters
   dimensions: {
-    length: number; // meters
-    width: number; // meters
-    height: number; // acoustic shadow height in meters
+    length: number | null; // meters
+    width: number | null; // meters
+    height: number | null; // acoustic shadow height in meters
   };
   estimatedArea: number | null; // sq meters
   acousticShadowLength: number | null; // meters
@@ -41,9 +43,9 @@ export interface SonarScan {
   locationName: string;
   vesselName: string;
   instrument: string;
-  frequencyKhz: number;
-  altitudeMeters: number;
-  rangeMeters: number;
+  frequencyKhz: number | null;
+  altitudeMeters: number | null;
+  rangeMeters: number | null;
   uploadedAt: string;
   status: ScanStatus;
   progress: number;

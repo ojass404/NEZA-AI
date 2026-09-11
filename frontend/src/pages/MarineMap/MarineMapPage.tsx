@@ -7,16 +7,19 @@ import { Detection } from '../../models/types';
 import { PriorityBadge, VerificationBadge, ConfidenceBadge, DemoBadge } from '../../components/common/Badges';
 import { Filter, ZoomIn, ZoomOut, RotateCcw, ArrowRight } from 'lucide-react';
 
+const DEMO_OCEAN_CENTER: [number, number] = [79.1891, 9.1558];
+
 export const MarineMapPage: React.FC = () => {
   const navigate = useNavigate();
-  const { detections, scans, mapFilters, setMapFilters, setSelectedDetectionId } = useAppState();
+  const { geojson, detections, scans, mapFilters, setMapFilters, setSelectedDetectionId } = useAppState();
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
 
+  const [mapReady, setMapReady] = useState(false);
   const [selectedMapDetection, setSelectedMapDetection] = useState<Detection | null>(null);
-  const [mapStyle, setMapStyle] = useState<'voyager' | 'ocean-dark' | 'hydro'>('voyager');
+  const [mapStyle, setMapStyle] = useState<'voyager' | 'ocean-dark' | 'hydro'>('hydro');
 
   const filteredDetections = detections.filter((det) => {
     if (mapFilters.survey !== 'ALL' && det.scanId !== mapFilters.survey) return false;
@@ -57,11 +60,14 @@ export const MarineMapPage: React.FC = () => {
           },
         ],
       },
-      center: [79.20, 9.16],
-      zoom: 10,
+      center: DEMO_OCEAN_CENTER,
+      zoom: 7,
     });
 
     mapRef.current = map;
+    setMapReady(false);
+    map.on('style.load', () => setMapReady(true));
+    if (map.getLayer('simple-tiles')) setMapReady(true);
 
     return () => {
       map.remove();
@@ -70,60 +76,44 @@ export const MarineMapPage: React.FC = () => {
   }, [mapStyle]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
-
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-
-    filteredDetections.forEach((det) => {
-      if (!det.latitude || !det.longitude) return;
-
-      const el = document.createElement('div');
-      el.className = 'cursor-pointer group';
-
-      const isSelected = selectedMapDetection?.id === det.id;
-      const isVerified = det.verificationStatus === 'VERIFIED';
-      const isHigh = det.priority === 'HIGH';
-
-      const bgPin = isHigh ? '#E8AF30' : det.priority === 'MEDIUM' ? '#E8C766' : '#3361AC';
-      const borderPin = isVerified ? '#16A34A' : '#FFFFFF';
-
-      el.innerHTML = `
-        <div style="
-          width: ${isSelected ? '32px' : '26px'};
-          height: ${isSelected ? '32px' : '26px'};
-          background-color: ${bgPin};
-          border: 3px solid ${borderPin};
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-          transition: transform 0.15s ease-out;
-        ">
-          <div style="width: 8px; height: 8px; background-color: #0F2043; border-radius: 50%;"></div>
-        </div>
-      `;
-
-      el.addEventListener('click', () => {
-        setSelectedMapDetection(det);
-        mapRef.current?.flyTo({
-          center: [det.longitude!, det.latitude!],
-          zoom: Math.max(mapRef.current.getZoom(), 11),
-          speed: 1.2,
-        });
-      });
-
-      const marker = new maplibregl.Marker({ element: el })
-        .setLngLat([det.longitude, det.latitude])
-        .addTo(mapRef.current!);
-
-      markersRef.current.push(marker);
+    const map = mapRef.current;
+    if (!map) return;
+    const allowed = new Set(filteredDetections.map(d => d.id));
+    const data = {...geojson, features: geojson.features.filter((f: any) => allowed.has(f.id))};
+    const update = () => {
+      const source = map.getSource('detections') as maplibregl.GeoJSONSource | undefined;
+      if (source) source.setData(data);
+      else {
+        map.addSource('detections', {type: 'geojson', data, generateId: true});
+        map.addLayer({id: 'detections', type: 'circle', source: 'detections', paint: {'circle-radius': 8, 'circle-color': '#E8AF30', 'circle-stroke-width': 2, 'circle-stroke-color': ['case', ['==', ['get', 'verification_status'], 'CONFIRMED'], '#16A34A', '#ffffff']}});
+      }
+      if (data.features.length) {
+        const bounds = new maplibregl.LngLatBounds();
+        data.features.forEach((f: any) => bounds.extend(f.geometry.coordinates));
+        map.fitBounds(bounds, {padding: 70, maxZoom: 12});
+      }
+    };
+    const select = (event: any) => {
+      const id = event.features?.[0]?.properties?.detection_id;
+      setSelectedMapDetection(detections.find(d => d.id === String(id)) || null);
+    };
+    if (map.getLayer('simple-tiles')) update(); else map.once('style.load', update);
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = data.features.map((feature: any) => {
+      const button = document.createElement('button');
+      button.setAttribute('aria-label', `Map candidate ${feature.properties.detection_id}`);
+      button.style.cssText = 'width:20px;height:20px;border-radius:50%;background:#E8AF30;border:3px solid #16A34A;box-shadow:0 0 0 3px #0008;cursor:pointer';
+      if (feature.properties.verification_status !== 'CONFIRMED') button.style.borderColor = '#ffffff';
+      button.onclick = () => setSelectedMapDetection(detections.find(d => d.id === feature.properties.detection_id) || null);
+      return new maplibregl.Marker({element: button}).setLngLat(feature.geometry.coordinates).addTo(map);
     });
-  }, [filteredDetections, selectedMapDetection]);
+
+    map.on('click', 'detections', select);
+    return () => { map.off('style.load', update); map.off('click', 'detections', select); markersRef.current.forEach(marker => marker.remove()); };
+  }, [geojson, detections, mapFilters, mapStyle, mapReady]);
 
   const handleResetView = () => {
-    mapRef.current?.flyTo({ center: [79.20, 9.16], zoom: 10 });
+    mapRef.current?.flyTo({ center: DEMO_OCEAN_CENTER, zoom: 7 });
     setSelectedMapDetection(null);
   };
 
@@ -140,7 +130,7 @@ export const MarineMapPage: React.FC = () => {
             <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
               Geospatial Marine Map
             </h1>
-            <DemoBadge text="DEMO TELEMETRY" />
+            <DemoBadge text="FRAME-LEVEL GPS" />
           </div>
           <p className="text-xs text-white/40 mt-0.5">
             Georeferenced spatial distribution of sonar anomalies across surveyed marine sectors.
@@ -156,7 +146,7 @@ export const MarineMapPage: React.FC = () => {
           >
             <option value="voyager">Standard Nautical (Light)</option>
             <option value="ocean-dark">Hydrographic Dark</option>
-            <option value="hydro">OpenSeaMap Base</option>
+            <option value="hydro">OpenStreetMap</option>
           </select>
         </div>
       </div>
@@ -198,7 +188,7 @@ export const MarineMapPage: React.FC = () => {
         >
           <option value="ALL">All Verification States</option>
           <option value="PENDING">Pending Review</option>
-          <option value="VERIFIED">Human Verified</option>
+          <option value="CONFIRMED">Human Verified</option>
           <option value="REJECTED">Rejected</option>
         </select>
 
@@ -210,6 +200,9 @@ export const MarineMapPage: React.FC = () => {
         </button>
       </div>
 
+      <div className="text-xs text-white/60">{geojson.features.length} geotagged candidates. Explicit or selected demo frame GPS is plotted.
+        {filteredDetections.filter(d => d.latitude !== null && d.longitude !== null).map(d => <button key={d.id} className="ml-3 underline" onClick={() => {setSelectedMapDetection(d); mapRef.current?.flyTo({center: [d.longitude!, d.latitude!], zoom: 12});}}>Select {d.id.slice(0, 8)}</button>)}
+      </div>
       <div className="relative w-full h-[620px] rounded-2xl overflow-hidden border border-white/10 shadow-md bg-[#0d0d0d]">
         <div ref={mapContainerRef} className="w-full h-full" />
 
@@ -242,15 +235,15 @@ export const MarineMapPage: React.FC = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-white inline-block border border-white/50" />
-              <span className="text-white/70">HIGH Priority (Ghost Nets / Containers)</span>
+              <span className="text-white/70">HIGH review priority</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-white/50 inline-block border border-white/30" />
-              <span className="text-white/70">MEDIUM Priority (Metals / Cables)</span>
+              <span className="text-white/70">MEDIUM review priority</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-white/20 inline-block border border-white/15" />
-              <span className="text-white/70">LOW Priority (Tires / Minor Objects)</span>
+              <span className="text-white/70">LOW review priority</span>
             </div>
           </div>
           <div className="pt-2 mt-2 border-t border-white/8 text-[10px] text-white/30">
@@ -296,7 +289,7 @@ export const MarineMapPage: React.FC = () => {
               <div className="flex justify-between">
                 <span className="text-white/40">Coordinates:</span>
                 <span className="text-white/70 font-semibold">
-                  {selectedMapDetection.latitude?.toFixed(4)}°N, {selectedMapDetection.longitude?.toFixed(4)}°E
+                  {selectedMapDetection.latitude?.toFixed(4)}°, {selectedMapDetection.longitude?.toFixed(4)}°
                 </span>
               </div>
               <div className="flex justify-between">

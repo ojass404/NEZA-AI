@@ -143,7 +143,7 @@ export const Sidebar: React.FC = () => {
             <span className="text-white font-bold">Simulated</span>
           </div>
           <div className="text-[10px] text-white/30 truncate font-mono">
-            Model: YOLOv9-SSS-v4
+            Model: YOLOv8n shipwreck
           </div>
         </div>
       </div>

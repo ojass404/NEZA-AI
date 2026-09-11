@@ -5,7 +5,7 @@ import { useAppState } from '../../../context/AppStateContext';
 export const DashboardVerificationChart: React.FC = () => {
   const { detections } = useAppState();
 
-  const verified = detections.filter((d) => d.verificationStatus === 'VERIFIED').length;
+  const verified = detections.filter((d) => d.verificationStatus === 'CONFIRMED').length;
   const rejected = detections.filter((d) => d.verificationStatus === 'REJECTED').length;
   const pending = detections.filter((d) => d.verificationStatus === 'PENDING').length;
 
