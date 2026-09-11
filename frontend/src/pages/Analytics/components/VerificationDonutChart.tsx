@@ -7,7 +7,7 @@ interface VerificationDonutProps {
 }
 
 export const VerificationDonutChart: React.FC<VerificationDonutProps> = ({ detections }) => {
-  const verified = detections.filter((d) => d.verificationStatus === 'CONFIRMED').length;
+  const verified = detections.filter((d) => d.verificationStatus === 'VERIFIED').length;
   const rejected = detections.filter((d) => d.verificationStatus === 'REJECTED').length;
   const pending = detections.filter((d) => d.verificationStatus === 'PENDING').length;
 

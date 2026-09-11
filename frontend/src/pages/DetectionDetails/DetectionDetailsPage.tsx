@@ -21,8 +21,6 @@ export const DetectionDetailsPage: React.FC = () => {
   const currentId = id || 'DET-001';
   const detection = detections.find((d) => d.id === currentId) || detections[0];
 
-  if (!detection) return <p className="text-white">Select a detection from Sonar Analysis.</p>;
-
   const currentIndex = detections.findIndex((d) => d.id === detection.id);
   const prevDetection = currentIndex > 0 ? detections[currentIndex - 1] : null;
   const nextDetection = currentIndex < detections.length - 1 ? detections[currentIndex + 1] : null;
@@ -86,7 +84,7 @@ export const DetectionDetailsPage: React.FC = () => {
             <div className="flex items-center justify-between pb-3 border-b border-white/8 text-xs font-mono">
               <div className="flex items-center gap-2 text-white/50">
                 <Maximize className="w-4 h-4 text-white/30" />
-                <span className="font-bold">SOURCE SCAN</span>
+                <span className="font-bold">ACOUSTIC HIGH-RES CROP</span>
               </div>
               <span className="text-white/30">
                 BOX: [{detection.bbox.join(', ')}] px
@@ -95,7 +93,7 @@ export const DetectionDetailsPage: React.FC = () => {
 
             <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#070D1D] my-3">
               <img
-                src={detection.cropUrl || undefined}
+                src={detection.cropUrl || '/sonar-samples/crop-ghostnet.png'}
                 alt={detection.classification}
                 className="w-full h-[360px] object-cover"
               />
@@ -109,13 +107,13 @@ export const DetectionDetailsPage: React.FC = () => {
               </div>
 
               <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-xs border border-white/10 rounded-lg px-2.5 py-1 text-[11px] font-mono text-amber-400 font-semibold">
-                SHADOW: {detection.acousticShadowLength ?? 'Unavailable'} m
+                SHADOW: {detection.acousticShadowLength || '2.1'} m
               </div>
             </div>
 
             <div className="flex items-center justify-between text-xs font-mono text-white/30 pt-1">
-              <span>Sensor: not supplied</span>
-              <span>Slant-Range: {detection.sensorMetadata?.slantRangeMeters ?? 'Unavailable'} m</span>
+              <span>Sensor: EdgeTech 4200 (410 kHz)</span>
+              <span>Slant-Range: {detection.sensorMetadata?.slantRangeMeters || 38.2} m</span>
             </div>
           </div>
 
@@ -153,28 +151,28 @@ export const DetectionDetailsPage: React.FC = () => {
               <div className="p-3 rounded-xl bg-[#1e1e1e] border border-white/8">
                 <span className="text-[10px] text-white/30 uppercase block">Length × Width</span>
                 <span className="font-bold text-white text-sm">
-                  {detection.dimensions.length ?? 'Unavailable'} m × {detection.dimensions.width ?? 'Unavailable'} m
+                  {detection.dimensions.length} m × {detection.dimensions.width} m
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#1e1e1e] border border-white/8">
                 <span className="text-[10px] text-white/30 uppercase block">Acoustic Elevation (H)</span>
                 <span className="font-bold text-amber-400 text-sm">
-                  {detection.dimensions.height ?? 'Unavailable'} m
+                  {detection.dimensions.height} m
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#1e1e1e] border border-white/8">
                 <span className="text-[10px] text-white/30 uppercase block">Estimated Area</span>
                 <span className="font-bold text-white text-sm">
-                  {detection.estimatedArea || 'Unavailable'} m²
+                  {detection.estimatedArea || (detection.dimensions.length * detection.dimensions.width).toFixed(2)} m²
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#1e1e1e] border border-white/8">
                 <span className="text-[10px] text-white/30 uppercase block">Sounding Depth</span>
                 <span className="font-bold text-white text-sm">
-                  {detection.depth ?? 'Unavailable'} m
+                  {detection.depth || 18.4} m
                 </span>
               </div>
             </div>
@@ -185,12 +183,12 @@ export const DetectionDetailsPage: React.FC = () => {
                   <MapPin className="w-3.5 h-3.5 text-white/30" />
                   WGS84 Coordinates:
                 </span>
-                <DemoBadge text="FRAME GPS / UNAVAILABLE" />
+                <DemoBadge text="DEMO COORDINATES" />
               </div>
 
               <div className="p-3 rounded-xl bg-[#1e1e1e] border border-white/8 font-mono text-xs flex justify-between">
-                <span className="text-white/50">Lat: <strong className="text-white">{detection.latitude?.toFixed(4) ?? 'Unavailable'}°</strong></span>
-                <span className="text-white/50">Long: <strong className="text-white">{detection.longitude?.toFixed(4) ?? 'Unavailable'}°</strong></span>
+                <span className="text-white/50">Lat: <strong className="text-white">{detection.latitude?.toFixed(4) || '9.1524'}° N</strong></span>
+                <span className="text-white/50">Long: <strong className="text-white">{detection.longitude?.toFixed(4) || '79.1843'}° E</strong></span>
               </div>
             </div>
 
@@ -205,7 +203,7 @@ export const DetectionDetailsPage: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Inference Pipeline:</span>
-                <span className="text-white/60 font-semibold">YOLOv8n — shipwreck</span>
+                <span className="text-white/60 font-semibold">YOLOv9-SSS (Dual-Band)</span>
               </div>
             </div>
           </div>

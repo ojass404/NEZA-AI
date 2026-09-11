@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { downloadReport } from '../../api/client';
 import { useAppState } from '../../context/AppStateContext';
 import { Report } from '../../models/types';
 import { DemoBadge } from '../../components/common/Badges';
@@ -14,18 +13,39 @@ export const ReportsPage: React.FC = () => {
   const { reports, scans, detections, generateReport, addToast } = useAppState();
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState<boolean>(false);
-  const [selectedScanForReport, setSelectedScanForReport] = useState<string>('');
+  const [selectedScanForReport, setSelectedScanForReport] = useState<string>(scans[0]?.id || 'SCAN-001');
   const [reportTitle, setReportTitle] = useState<string>('');
 
-  const handleGenerate = async () => {
-    try {
-      const report = await generateReport(selectedScanForReport || scans[0]?.id, reportTitle.trim() || undefined);
-      setSelectedReport(report); setIsGenerateModalOpen(false);
-    } catch (e) { addToast('error', 'Report failed', (e as Error).message); }
+  const handleGenerate = () => {
+    const newRpt = generateReport(
+      selectedScanForReport,
+      reportTitle.trim() || undefined
+    );
+    setIsGenerateModalOpen(false);
+    setReportTitle('');
+    setSelectedReport(newRpt);
   };
-  const handleDownloadDemo = async (report: Report) => {
-    try { await downloadReport(report.scanId, 'json'); }
-    catch (e) { addToast('error', 'Export failed', (e as Error).message); }
+
+  const handleDownloadDemo = (report: Report) => {
+    const exportData = {
+      reportId: report.id,
+      title: report.title,
+      survey: report.surveyName,
+      organization: report.organization,
+      department: report.department,
+      generatedAt: report.generatedAt,
+      detections: detections.filter((d) => d.scanId === report.scanId),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${report.id}_moes_anomaly_dossier.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    addToast('success', 'Dossier Exported', `Report ${report.id} downloaded successfully (Demo Export).`);
   };
 
   return (
@@ -42,7 +62,7 @@ export const ReportsPage: React.FC = () => {
         </div>
 
         <button
-          disabled={!scans.length} onClick={() => { setSelectedScanForReport(scans[0]?.id || ''); setIsGenerateModalOpen(true); }}
+          onClick={() => setIsGenerateModalOpen(true)}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-black font-extrabold text-xs font-mono transition-all hover:bg-white/90 shadow-md self-start sm:self-auto"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -108,10 +128,8 @@ export const ReportsPage: React.FC = () => {
                   title="Download Export File"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>JSON</span>
+                  <span>Export</span>
                 </button>
-                <button onClick={() => downloadReport(rpt.scanId, 'csv').catch(e => addToast('error', 'Export failed', e.message))}>CSV</button>
-                <button onClick={() => downloadReport(rpt.scanId, 'geojson').catch(e => addToast('error', 'Export failed', e.message))}>GeoJSON</button>
               </div>
             </div>
           );
@@ -135,7 +153,7 @@ export const ReportsPage: React.FC = () => {
               Generate New Operational Report
             </h3>
             <p className="text-xs text-white/40 leading-relaxed">
-              Synthesize sonar detections and human verification logs into a NEZA AI review report.
+              Synthesize sonar detections and human verification logs into a formal NIOT anomaly dossier.
             </p>
 
             <div className="space-y-3 font-mono text-xs">

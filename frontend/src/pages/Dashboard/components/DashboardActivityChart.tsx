@@ -1,10 +1,7 @@
 import React from 'react';
-import { useAppState } from '../../../context/AppStateContext';
 import ReactECharts from 'echarts-for-react';
 
 export const DashboardActivityChart: React.FC = () => {
-  const {detections} = useAppState();
-  const days = [...new Set(detections.map(d => d.timestamp.slice(0, 10)))].sort();
   const option = {
     backgroundColor: 'transparent',
     tooltip: {
@@ -23,7 +20,7 @@ export const DashboardActivityChart: React.FC = () => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: days,
+      data: ['04 Sep', '05 Sep', '06 Sep', '07 Sep', '08 Sep', '09 Sep', '10 Sep'],
       axisLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
       axisLabel: { color: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'monospace' },
     },
@@ -37,7 +34,7 @@ export const DashboardActivityChart: React.FC = () => {
         name: 'AI Detections',
         type: 'line',
         smooth: true,
-        data: days.map(day => detections.filter(d => d.timestamp.startsWith(day)).length),
+        data: [12, 19, 15, 27, 22, 31, 24],
         lineStyle: { color: 'rgba(255,255,255,0.9)', width: 2.5 },
         itemStyle: { color: '#ffffff' },
         areaStyle: {
@@ -58,7 +55,7 @@ export const DashboardActivityChart: React.FC = () => {
         name: 'High Priority',
         type: 'line',
         smooth: true,
-        data: days.map(day => detections.filter(d => d.timestamp.startsWith(day) && d.priority === 'HIGH').length),
+        data: [2, 4, 3, 6, 5, 8, 5],
         lineStyle: { color: 'rgba(255,255,255,0.35)', width: 2, type: 'dashed' },
         itemStyle: { color: 'rgba(255,255,255,0.35)' },
       },

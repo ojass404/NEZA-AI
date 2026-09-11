@@ -1,8 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { Detection, SonarScan, Report, UserProfile, SystemStatus, VerificationStatus } from '../models/types';
-import { api, request } from '../api/client';
-import { scanFromApi, detectionFromApi } from '../api/adapters';
-import type { ApiScanResponse, ApiDetectionDto } from '../api/types';
+import { INITIAL_USER, INITIAL_SYSTEM_STATUS, INITIAL_SCANS, INITIAL_DETECTIONS, INITIAL_REPORTS } from '../data/mockData';
 
 export interface ToastMessage {
   id: string;
@@ -16,9 +14,6 @@ type MapFilters = { survey: string; classification: string; priority: string; ve
 type AnalyticsFilters = { survey: string; timeRange: string; classification: string; priority: string };
 
 interface AppStateContextType {
-  refresh: () => Promise<void>;
-  error: string;
-  geojson: any;
   user: UserProfile;
   systemStatus: SystemStatus;
   scans: SonarScan[];
@@ -37,19 +32,19 @@ interface AppStateContextType {
   removeToast: (id: string) => void;
   verifyDetection: (id: string, status: VerificationStatus, note?: string) => void;
   addNewScan: (scan: SonarScan, newDetections: Detection[]) => void;
-  generateReport: (scanId: string, title?: string) => Promise<Report>;
+  generateReport: (scanId: string, title?: string) => Report;
 }
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
 export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user] = useState<UserProfile>({ name: 'Local analyst', role: 'Reviewer', organization: 'NEZA AI', department: '', email: '', avatar: '', lastActive: '', surveysCompleted: 0, verificationsLogged: 0 });
-  const [systemStatus, setSystemStatus] = useState<SystemStatus>({ engineStatus: 'OFFLINE', latencyMs: 0, activeSurveys: 0, storageUsedGb: 0, apiVersion: '1.0.0', modelIdentifier: 'YOLOv8n shipwreck' });
-  const [scans, setScans] = useState<SonarScan[]>([]);
-  const [detections, setDetections] = useState<Detection[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [selectedScanId, setSelectedScanId] = useState('');
-  const [selectedDetectionId, setSelectedDetectionId] = useState<string | null>(null);
+  const [user] = useState<UserProfile>(INITIAL_USER);
+  const [systemStatus] = useState<SystemStatus>(INITIAL_SYSTEM_STATUS);
+  const [scans, setScans] = useState<SonarScan[]>(INITIAL_SCANS);
+  const [detections, setDetections] = useState<Detection[]>(INITIAL_DETECTIONS);
+  const [reports, setReports] = useState<Report[]>(INITIAL_REPORTS);
+  const [selectedScanId, setSelectedScanId] = useState('SCAN-001');
+  const [selectedDetectionId, setSelectedDetectionId] = useState<string | null>('DET-001');
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [mapFilters, setMapFilters] = useState<MapFilters>({ survey: 'ALL', classification: 'ALL', priority: 'ALL', verification: 'ALL' });
   const [analyticsFilters, setAnalyticsFilters] = useState<AnalyticsFilters>({ survey: 'ALL', timeRange: '30D', classification: 'ALL', priority: 'ALL' });
@@ -62,44 +57,41 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const removeToast = (id: string) => setToasts((prev) => prev.filter((t) => t.id !== id));
 
-  const [error, setError] = useState('');
-  const [geojson, setGeojson] = useState<any>({ type: 'FeatureCollection', features: [] });
-  const refresh = async () => {
-    try {
-      const rows = await api<ApiScanResponse[]>('/scans');
-      const nextScans = rows.map(s => scanFromApi(s));
-      const all = await Promise.all(nextScans.map(async scan => {
-        const result = await api<{ detections: ApiDetectionDto[] }>(`/scans/${scan.id}/detections`);
-        return result.detections.map(d => detectionFromApi(d, scan));
-      }));
-      setScans(previous => nextScans.map(scan => ({...scan, imageUrl: previous.find(s => s.id === scan.id)?.imageUrl || ''})));
-      setDetections(all.flat());
-      setSelectedScanId(current => current || nextScans[0]?.id || '');
-      setGeojson(await api('/map/detections'));
-      const deps = await api('/health/dependencies');
-      setSystemStatus(prev => ({...prev, engineStatus: deps.database === 'healthy' && deps.ai_provider === 'configured' ? 'ONLINE' : 'DEGRADED', activeSurveys: rows.length}));
-      setError('');
-    } catch (e) { setError((e as Error).message); setSystemStatus(prev => ({...prev, engineStatus: 'OFFLINE'})); }
-  };
-  useEffect(() => { void refresh(); }, []);
-  useEffect(() => {
-    if (!selectedScanId) return;
-    let active = true;
-    let objectUrl = '';
-    request(`/scans/${selectedScanId}/image`).then(response => response.blob()).then(blob => {
-      objectUrl = URL.createObjectURL(blob);
-      if (!active) { URL.revokeObjectURL(objectUrl); return; }
-      setScans(prev => prev.map(scan => scan.id === selectedScanId ? {...scan, imageUrl: objectUrl} : scan));
-      setDetections(prev => prev.map(d => d.scanId === selectedScanId ? {...d, cropUrl: objectUrl} : d));
-    }).catch(e => { if (active) setError(e.message); });
-    return () => { active = false; if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [selectedScanId]);
-  const verifyDetection = async (id: string, status: VerificationStatus, note?: string) => {
-    try {
-      await api(`/detections/${id}/verification`, {method: 'PATCH', body: JSON.stringify({verification_status: status, notes: note, verified_by: user.name})});
-      await refresh();
-      addToast('success', 'Verification saved', status);
-    } catch (e) { addToast('error', 'Verification failed', (e as Error).message); }
+  const verifyDetection = (id: string, status: VerificationStatus, note?: string) => {
+    setDetections((prev) =>
+      prev.map((det) =>
+        det.id !== id ? det : {
+          ...det,
+          verificationStatus: status,
+          verificationNote: note ?? det.verificationNote,
+          verifiedBy: status !== 'PENDING' ? user.name : undefined,
+          verifiedAt: status !== 'PENDING' ? new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC' : undefined,
+        }
+      )
+    );
+
+    // Update reports that reference the same scan
+    const targetDet = detections.find((d) => d.id === id);
+    if (targetDet) {
+      setReports((prev) =>
+        prev.map((r) => {
+          if (r.scanId !== targetDet.scanId) return r;
+          const scanDets = detections
+            .map((d) => (d.id === id ? { ...d, verificationStatus: status } : d))
+            .filter((d) => d.scanId === r.scanId);
+          return {
+            ...r,
+            verifiedCount: scanDets.filter((d) => d.verificationStatus === 'VERIFIED').length,
+            rejectedCount: scanDets.filter((d) => d.verificationStatus === 'REJECTED').length,
+            pendingCount: scanDets.filter((d) => d.verificationStatus === 'PENDING').length,
+          };
+        })
+      );
+    }
+
+    if (status === 'VERIFIED') addToast('success', 'Detection Verified', `Anomaly ${id} confirmed by ${user.name}.`);
+    else if (status === 'REJECTED') addToast('warning', 'Detection Rejected', `Anomaly ${id} rejected (${note || 'Acoustic artifact'}).`);
+    else addToast('info', 'Verification Reset', `Anomaly ${id} reset to pending.`);
   };
 
   const addNewScan = (newScan: SonarScan, newDetections: Detection[]) => {
@@ -110,10 +102,9 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     addToast('success', 'Survey Processed', `Generated ${newDetections.length} detections for ${newScan.id}.`);
   };
 
-  const generateReport = async (scanId: string, title?: string): Promise<Report> => {
-    const persisted = await api(`/scans/${scanId}/report/json`);
+  const generateReport = (scanId: string, title?: string): Report => {
     const scan = scans.find((s) => s.id === scanId) ?? scans[0];
-    const scanDets: Detection[] = persisted.detections.map((d: ApiDetectionDto) => detectionFromApi(d, scan));
+    const scanDets = detections.filter((d) => d.scanId === scanId);
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
 
     const newReport: Report = {
@@ -121,13 +112,13 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       scanId: scan.id,
       title: title ?? `Operational Anomaly Report — ${scan.surveyName}`,
       surveyName: scan.surveyName,
-      organization: 'NEZA AI',
-      department: 'Human review',
+      organization: 'Ministry of Earth Sciences (MoES)',
+      department: 'National Institute of Ocean Technology (NIOT)',
       generatedAt: now,
       generatedBy: user.name,
       detectionCount: scanDets.length,
       highPriorityCount: scanDets.filter((d) => d.priority === 'HIGH').length,
-      verifiedCount: scanDets.filter((d) => d.verificationStatus === 'CONFIRMED').length,
+      verifiedCount: scanDets.filter((d) => d.verificationStatus === 'VERIFIED').length,
       rejectedCount: scanDets.filter((d) => d.verificationStatus === 'REJECTED').length,
       pendingCount: scanDets.filter((d) => d.verificationStatus === 'PENDING').length,
       status: 'READY',
@@ -142,7 +133,7 @@ export const AppStateProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   return (
     <AppStateContext.Provider value={{
-      refresh, error, geojson, user, systemStatus, scans, detections, reports,
+      user, systemStatus, scans, detections, reports,
       selectedScanId, selectedDetectionId, toasts,
       mapFilters, analyticsFilters,
       setSelectedScanId, setSelectedDetectionId,

@@ -7,8 +7,18 @@ interface ClassificationChartProps {
 }
 
 export const ClassificationDistributionChart: React.FC<ClassificationChartProps> = ({ detections }) => {
-  const categories = [...new Set(detections.map(d => d.classification))];
-  const counts = categories.map(cat => detections.filter(d => d.classification === cat).length);
+  const categories = [
+    'Ghost Net / Fishing Gear',
+    'Metal Debris / Scrap',
+    'Pipe / Cable',
+    'Container / Cargo',
+    'Tire / Rubber',
+    'Unknown Anomaly',
+  ];
+
+  const counts = categories.map((cat) => {
+    return detections.filter((d) => d.classification.toLowerCase().includes(cat.split('/')[0].trim().toLowerCase())).length;
+  });
 
   const option = {
     backgroundColor: 'transparent',

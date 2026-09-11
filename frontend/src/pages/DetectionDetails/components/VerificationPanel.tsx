@@ -22,7 +22,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({ detection 
   const [customNote, setCustomNote] = useState('');
 
   const handleAccept = () => {
-    verifyDetection(detection.id, 'CONFIRMED');
+    verifyDetection(detection.id, 'VERIFIED');
   };
 
   const handleConfirmReject = () => {
@@ -36,7 +36,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({ detection 
     verifyDetection(detection.id, 'PENDING');
   };
 
-  const isVerified = detection.verificationStatus === 'CONFIRMED';
+  const isVerified = detection.verificationStatus === 'VERIFIED';
   const isRejected = detection.verificationStatus === 'REJECTED';
   const isPending = detection.verificationStatus === 'PENDING';
 

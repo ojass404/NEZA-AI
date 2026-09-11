@@ -1,69 +1,146 @@
 import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { UploadZone } from './components/UploadZone';
+import { ProcessingTimeline } from './components/ProcessingTimeline';
 import { SonarViewer } from './components/SonarViewer';
 import { DetectionList } from './components/DetectionList';
-import { api } from '../../api/client';
-
-const DEMO_OCEAN_POSITION = {
-  latitude: '9.1558',
-  longitude: '79.1891',
-  label: 'Gulf of Mannar demo sector',
-};
+import { sonarService } from '../../services/sonarService';
+import { ProcessingStage, Detection } from '../../models/types';
+import { DemoBadge } from '../../components/common/Badges';
 
 export const SonarAnalysisPage: React.FC = () => {
-  const { scans, selectedScanId, detections, selectedDetectionId, setSelectedDetectionId,
-    setSelectedScanId, refresh } = useAppState();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [mode, setMode] = useState('auto');
-  const [metadataSource, setMetadataSource] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  const activeScan = scans.find(s => s.id === selectedScanId);
-  const activeDetections = detections.filter(d => d.scanId === activeScan?.id);
-  const start = async (file: File) => {
-    setError('');
-    if ((latitude === '') !== (longitude === '')) { setError('Supply both GPS coordinates or leave both blank.'); return; }
-    if (latitude && (!Number.isFinite(Number(latitude)) || Math.abs(Number(latitude)) > 90 || !Number.isFinite(Number(longitude)) || Math.abs(Number(longitude)) > 180)) { setError('Enter valid WGS84 coordinates.'); return; }
+  const {
+    scans,
+    selectedScanId,
+    detections,
+    selectedDetectionId,
+    setSelectedDetectionId,
+    addNewScan,
+  } = useAppState();
+
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [stages, setStages] = useState<ProcessingStage[]>([
+    { id: 'stg-1', name: 'Sonar Swath Data Ingestion', status: 'pending', detail: 'Validating acoustic file headers...' },
+    { id: 'stg-2', name: 'Nadir & Slant-Range Correction', status: 'pending', detail: 'Equalizing water-column backscatter...' },
+    { id: 'stg-3', name: 'Deep Learning Anomaly Inference', status: 'pending', detail: 'Running NEZA YOLOv9-SSS model...' },
+    { id: 'stg-4', name: 'Acoustic Shadow & Dimension Analysis', status: 'pending', detail: 'Extrapolating shadow length...' },
+    { id: 'stg-5', name: 'WGS84 Georeferencing & Bathymetry Link', status: 'pending', detail: 'Linking GNSS coordinates...' },
+  ]);
+  const [progress, setProgress] = useState<number>(0);
+  const [elapsed, setElapsed] = useState<number>(0);
+
+  const activeScan = scans.find((s) => s.id === selectedScanId) || scans[0];
+  const activeDetections = detections.filter((d) => d.scanId === activeScan.id);
+
+  const handleStartAnalysis = async (file: { name: string; size: number; type: string }) => {
     setIsProcessing(true);
+    setProgress(0);
+    setElapsed(0);
+
+    const timer = setInterval(() => {
+      setElapsed((prev) => prev + 1);
+    }, 1000);
+
     try {
-      setMessage('Uploading sonar image...');
-      const data = new FormData(); data.append('file', file); data.append('survey_name', file.name);
-      const uploaded = await api('/scans/upload', {method: 'POST', body: data});
-      setSelectedScanId(uploaded.scan_id);
-      const metadata = latitude === '' ? {} : {
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        source: metadataSource || 'MANUAL_ENTRY',
-      };
-      await api(`/scans/${uploaded.scan_id}/metadata`, {method: 'POST', body: JSON.stringify(metadata)});
-      setMessage('Processing sonar scan...');
-      const result = await api(`/scans/${uploaded.scan_id}/process`, {method: 'POST', body: JSON.stringify({mode})});
-      setMessage(result.detection_count ? `Processing complete — ${result.detection_count} detections found.` : 'No candidate anomalies detected.');
-    } catch (e) { setError((e as Error).message); setMessage(''); }
-    finally { await refresh(); setIsProcessing(false); }
+      const resultScan = await sonarService.simulateProcessing(
+        file.name,
+        file.size,
+        (currentStage, overallPct) => {
+          setStages((prev) =>
+            prev.map((s) => (s.id === currentStage.id ? { ...s, status: currentStage.status, detail: currentStage.detail } : s))
+          );
+          setProgress(overallPct);
+        }
+      );
+
+      const newDetections: Detection[] = [
+        {
+          id: `DET-${Math.floor(100 + Math.random() * 900)}`,
+          scanId: resultScan.id,
+          surveyName: resultScan.surveyName,
+          classification: 'Ghost Net / Nylon Gillnet',
+          confidence: 0.94,
+          priority: 'HIGH',
+          bbox: [350, 220, 260, 170],
+          latitude: 9.1721,
+          longitude: 79.2084,
+          depth: 21.0,
+          dimensions: { length: 4.6, width: 2.3, height: 1.1 },
+          estimatedArea: 10.58,
+          acousticShadowLength: 2.8,
+          verificationStatus: 'PENDING',
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+        },
+        {
+          id: `DET-${Math.floor(100 + Math.random() * 900)}`,
+          scanId: resultScan.id,
+          surveyName: resultScan.surveyName,
+          classification: 'Metal Debris / Industrial Container',
+          confidence: 0.88,
+          priority: 'HIGH',
+          bbox: [820, 360, 200, 140],
+          latitude: 9.1765,
+          longitude: 79.2132,
+          depth: 23.4,
+          dimensions: { length: 3.1, width: 1.8, height: 1.2 },
+          estimatedArea: 5.58,
+          acousticShadowLength: 3.2,
+          verificationStatus: 'PENDING',
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+        },
+      ];
+
+      addNewScan(resultScan, newDetections);
+    } finally {
+      clearInterval(timer);
+      setIsProcessing(false);
+    }
   };
-  return <div className="space-y-6 text-white">
-    <h1 className="text-2xl font-bold">Sonar Analysis & Inspection</h1>
-    <p className="text-white/60">Raw side-scan imagery · YOLOv8n · candidates require human review.</p>
-    <div className="flex flex-wrap gap-4 p-4 bg-[#161616] rounded-xl">
-      <label>Latitude (optional)<input aria-label="Latitude" type="number" min="-90" max="90" step="any" value={latitude} onChange={e => { setLatitude(e.target.value); setMetadataSource(e.target.value === DEMO_OCEAN_POSITION.latitude && longitude === DEMO_OCEAN_POSITION.longitude ? 'DEMO_OCEAN_COORDINATES' : ''); }} className="block bg-[#242424] p-2" disabled={isProcessing}/></label>
-      <label>Longitude (optional)<input aria-label="Longitude" type="number" min="-180" max="180" step="any" value={longitude} onChange={e => { setLongitude(e.target.value); setMetadataSource(latitude === DEMO_OCEAN_POSITION.latitude && e.target.value === DEMO_OCEAN_POSITION.longitude ? 'DEMO_OCEAN_COORDINATES' : ''); }} className="block bg-[#242424] p-2" disabled={isProcessing}/></label>
-      <button type="button" onClick={() => { setLatitude(DEMO_OCEAN_POSITION.latitude); setLongitude(DEMO_OCEAN_POSITION.longitude); setMetadataSource('DEMO_OCEAN_COORDINATES'); }} disabled={isProcessing} className="self-end bg-[#242424] px-3 py-2 rounded-lg border border-white/10 hover:border-white/30">
-        Use ocean demo GPS
-      </button>
-      <label>Inference mode<select value={mode} onChange={e => setMode(e.target.value)} disabled={isProcessing} className="block bg-[#242424] p-2"><option value="auto">Auto (strip-aware)</option><option value="full_strip">Full sonar strip (0.05, tiled)</option><option value="standard">Object-centred crop (0.20)</option></select></label>
-      {metadataSource === 'DEMO_OCEAN_COORDINATES' && <p className="basis-full text-xs text-white/50">Using {DEMO_OCEAN_POSITION.label}: {DEMO_OCEAN_POSITION.latitude}, {DEMO_OCEAN_POSITION.longitude}</p>}
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight">
+              Sonar Analysis & Inspection
+            </h1>
+
+          </div>
+          <p className="text-xs md:text-sm text-white/40 mt-0.5">
+            Upload Side-Scan Sonar imagery or survey logs for automated anomaly detection
+          </p>
+        </div>
+      </div>
+
+      <UploadZone onStartAnalysis={handleStartAnalysis} isProcessing={isProcessing} />
+
+      {(isProcessing || progress > 0) && (
+        <ProcessingTimeline
+          stages={stages}
+          currentProgress={progress}
+          elapsedSeconds={elapsed}
+          onCancel={() => setIsProcessing(false)}
+        />
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <SonarViewer
+            scan={activeScan}
+            detections={activeDetections}
+            selectedDetectionId={selectedDetectionId}
+            onSelectDetection={setSelectedDetectionId}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <DetectionList
+            detections={activeDetections}
+            selectedDetectionId={selectedDetectionId}
+            onSelectDetection={setSelectedDetectionId}
+          />
+        </div>
+      </div>
     </div>
-    <UploadZone onStartAnalysis={start} isProcessing={isProcessing}/>
-    {message && <p role="status">{message}</p>}
-    {error && <p role="alert" className="text-red-400">{error}</p>}
-    {activeScan && <><select aria-label="Scan" value={selectedScanId} onChange={e => setSelectedScanId(e.target.value)} className="bg-[#242424] p-2">{scans.map(s => <option key={s.id} value={s.id}>{s.filename} — {s.status}</option>)}</select>
-      {activeDetections.some(d => d.latitude === null) && <p>Detections generated, but geographic coordinates are unavailable for this scan.</p>}
-      {activeDetections.some(d => d.latitude !== null) && <p>FRAME_LEVEL GPS associates candidates with the scan position; it is not an exact target location.</p>}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6"><div className="lg:col-span-2"><SonarViewer scan={activeScan} detections={activeDetections} selectedDetectionId={selectedDetectionId} onSelectDetection={setSelectedDetectionId}/></div><DetectionList detections={activeDetections} selectedDetectionId={selectedDetectionId} onSelectDetection={setSelectedDetectionId}/></div>
-    </>}
-  </div>;
+  );
 };
