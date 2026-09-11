@@ -7,6 +7,7 @@ export interface Detection {
   scanId: string;
   surveyName: string;
   classification: string;
+  modelName?: string;
   confidence: number; // 0 to 1, e.g. 0.92
   priority: PriorityLevel;
   bbox: [number, number, number, number]; // [x, y, width, height] in pixel coordinates

@@ -8,6 +8,31 @@ import { sonarService } from '../../services/sonarService';
 import { ProcessingStage, Detection } from '../../models/types';
 import { DemoBadge } from '../../components/common/Badges';
 
+const getImageSize = (imageUrl: string): Promise<{ width: number; height: number } | undefined> =>
+  new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => resolve(undefined);
+    image.src = imageUrl;
+  });
+
+const scaleBox = (
+  [x, y, width, height]: [number, number, number, number],
+  imageSize: { width: number; height: number } | undefined
+): [number, number, number, number] => {
+  if (!imageSize) return [x, y, width, height];
+  const scaleX = imageSize.width / 1600;
+  const scaleY = imageSize.height / 900;
+  const scaledX = Math.round(x * scaleX);
+  const scaledY = Math.round(y * scaleY);
+  return [
+    scaledX,
+    scaledY,
+    Math.max(12, Math.min(Math.round(width * scaleX), imageSize.width - scaledX)),
+    Math.max(12, Math.min(Math.round(height * scaleY), imageSize.height - scaledY)),
+  ];
+};
+
 export const SonarAnalysisPage: React.FC = () => {
   const {
     scans,
@@ -22,7 +47,7 @@ export const SonarAnalysisPage: React.FC = () => {
   const [stages, setStages] = useState<ProcessingStage[]>([
     { id: 'stg-1', name: 'Sonar Swath Data Ingestion', status: 'pending', detail: 'Validating acoustic file headers...' },
     { id: 'stg-2', name: 'Nadir & Slant-Range Correction', status: 'pending', detail: 'Equalizing water-column backscatter...' },
-    { id: 'stg-3', name: 'Deep Learning Anomaly Inference', status: 'pending', detail: 'Running NEZA YOLOv9-SSS model...' },
+    { id: 'stg-3', name: 'Deep Learning Anomaly Inference', status: 'pending', detail: 'Running NEZA shipwreck model...' },
     { id: 'stg-4', name: 'Acoustic Shadow & Dimension Analysis', status: 'pending', detail: 'Extrapolating shadow length...' },
     { id: 'stg-5', name: 'WGS84 Georeferencing & Bathymetry Link', status: 'pending', detail: 'Linking GNSS coordinates...' },
   ]);
@@ -32,10 +57,14 @@ export const SonarAnalysisPage: React.FC = () => {
   const activeScan = scans.find((s) => s.id === selectedScanId) || scans[0];
   const activeDetections = detections.filter((d) => d.scanId === activeScan.id);
 
-  const handleStartAnalysis = async (file: { name: string; size: number; type: string }) => {
+  const handleStartAnalysis = async (file: File | { name: string; size: number; type: string; imageUrl?: string }) => {
     setIsProcessing(true);
     setProgress(0);
     setElapsed(0);
+    const uploadedImageUrl = file instanceof File
+      ? file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined
+      : file.imageUrl;
+    const uploadedImageSize = uploadedImageUrl ? await getImageSize(uploadedImageUrl) : undefined;
 
     const timer = setInterval(() => {
       setElapsed((prev) => prev + 1);
@@ -45,6 +74,8 @@ export const SonarAnalysisPage: React.FC = () => {
       const resultScan = await sonarService.simulateProcessing(
         file.name,
         file.size,
+        uploadedImageUrl,
+        uploadedImageSize,
         (currentStage, overallPct) => {
           setStages((prev) =>
             prev.map((s) => (s.id === currentStage.id ? { ...s, status: currentStage.status, detail: currentStage.detail } : s))
@@ -61,7 +92,7 @@ export const SonarAnalysisPage: React.FC = () => {
           classification: 'Ghost Net / Nylon Gillnet',
           confidence: 0.94,
           priority: 'HIGH',
-          bbox: [350, 220, 260, 170],
+          bbox: scaleBox([350, 220, 260, 170], uploadedImageSize),
           latitude: 9.1721,
           longitude: 79.2084,
           depth: 21.0,
@@ -70,6 +101,7 @@ export const SonarAnalysisPage: React.FC = () => {
           acousticShadowLength: 2.8,
           verificationStatus: 'PENDING',
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+          cropUrl: resultScan.imageUrl,
         },
         {
           id: `DET-${Math.floor(100 + Math.random() * 900)}`,
@@ -78,7 +110,7 @@ export const SonarAnalysisPage: React.FC = () => {
           classification: 'Metal Debris / Industrial Container',
           confidence: 0.88,
           priority: 'HIGH',
-          bbox: [820, 360, 200, 140],
+          bbox: scaleBox([820, 360, 200, 140], uploadedImageSize),
           latitude: 9.1765,
           longitude: 79.2132,
           depth: 23.4,
@@ -87,6 +119,7 @@ export const SonarAnalysisPage: React.FC = () => {
           acousticShadowLength: 3.2,
           verificationStatus: 'PENDING',
           timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
+          cropUrl: resultScan.imageUrl,
         },
       ];
 

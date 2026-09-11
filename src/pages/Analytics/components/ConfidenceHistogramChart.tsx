@@ -7,13 +7,12 @@ interface ConfidenceHistogramProps {
 }
 
 export const ConfidenceHistogramChart: React.FC<ConfidenceHistogramProps> = ({ detections }) => {
-  const bins = ['60-69%', '70-79%', '80-89%', '90-100%'];
-  const binCounts = [
-    detections.filter((d) => d.confidence >= 0.6 && d.confidence < 0.7).length,
-    detections.filter((d) => d.confidence >= 0.7 && d.confidence < 0.8).length,
-    detections.filter((d) => d.confidence >= 0.8 && d.confidence < 0.9).length,
-    detections.filter((d) => d.confidence >= 0.9).length,
-  ];
+  const bins = ['0-9%', '10-19%', '20-29%', '30-39%', '40-49%', '50-59%', '60-69%', '70-79%', '80-89%', '90-100%'];
+  const binCounts = bins.map((_, index) => {
+    const min = index / 10;
+    const max = index === bins.length - 1 ? 1.01 : (index + 1) / 10;
+    return detections.filter((d) => d.confidence >= min && d.confidence < max).length;
+  });
 
   const option = {
     backgroundColor: 'transparent',
@@ -26,7 +25,7 @@ export const ConfidenceHistogramChart: React.FC<ConfidenceHistogramProps> = ({ d
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '6%',
+      bottom: '14%',
       top: '12%',
       containLabel: true,
     },
@@ -34,7 +33,7 @@ export const ConfidenceHistogramChart: React.FC<ConfidenceHistogramProps> = ({ d
       type: 'category',
       data: bins,
       axisLine: { lineStyle: { color: '#CBD5E1' } },
-      axisLabel: { color: '#64748B', fontSize: 10, fontFamily: 'monospace' },
+      axisLabel: { color: '#64748B', fontSize: 10, fontFamily: 'monospace', rotate: 35 },
     },
     yAxis: {
       type: 'value',
