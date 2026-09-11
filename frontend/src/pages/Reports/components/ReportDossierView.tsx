@@ -32,9 +32,9 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
   const highPriorityDetections = detections.filter((d) => d.priority === 'HIGH');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fade-in">
-      <div className="bg-[#161616] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl text-white relative">
-        <div className="h-14 bg-[#111] border-b border-white/8 px-6 flex items-center justify-between shrink-0">
+    <div className="report-dossier-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fade-in">
+      <div className="report-dossier-sheet bg-[#161616] border border-white/10 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl text-white relative">
+        <div className="report-dossier-toolbar h-14 bg-[#111] border-b border-white/8 px-6 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <FileText className="w-5 h-5 text-white/50" />
             <span className="font-mono text-xs font-bold text-white/70">
@@ -67,7 +67,7 @@ export const ReportDossierView: React.FC<ReportDossierViewProps> = ({
           </div>
         </div>
 
-        <div className="p-8 overflow-y-auto space-y-6 font-sans">
+        <div className="report-dossier-body p-8 overflow-y-auto space-y-6 font-sans">
           <div className="border-b border-white/10 pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="text-[11px] font-mono text-white/40 font-bold tracking-wider uppercase">

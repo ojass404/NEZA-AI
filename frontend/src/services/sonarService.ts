@@ -7,6 +7,8 @@ export interface SonarServiceInterface {
   simulateProcessing(
     filename: string,
     fileSize: number,
+    imageUrl: string | undefined,
+    imageSize: { width: number; height: number } | undefined,
     onProgress: (stage: ProcessingStage, overallProgress: number) => void
   ): Promise<SonarScan>;
 }
@@ -27,12 +29,14 @@ export class MockSonarService implements SonarServiceInterface {
   async simulateProcessing(
     filename: string,
     fileSize: number,
+    imageUrl: string | undefined,
+    imageSize: { width: number; height: number } | undefined,
     onProgress: (stage: ProcessingStage, overallProgress: number) => void
   ): Promise<SonarScan> {
     const stages: Omit<ProcessingStage, 'status'>[] = [
       { id: 'stg-1', name: 'Sonar Swath Data Ingestion', detail: `Validating acoustic file headers (${(fileSize / (1024 * 1024)).toFixed(1)} MB)...` },
       { id: 'stg-2', name: 'Nadir & Slant-Range Correction', detail: 'Equalizing water-column acoustic backscatter & time-varied gain...' },
-      { id: 'stg-3', name: 'Deep Learning Anomaly Inference', detail: 'Running NEZA YOLOv9-SSS dual-frequency detector weights...' },
+      { id: 'stg-3', name: 'Deep Learning Anomaly Inference', detail: 'Running NEZA shipwreck detector weights...' },
       { id: 'stg-4', name: 'Acoustic Shadow & Dimension Analysis', detail: 'Calculating object elevation, length, and shadow extrapolation...' },
       { id: 'stg-5', name: 'WGS84 Georeferencing & Bathymetry Link', detail: 'Linking GNSS towfish position and sounding depth coordinates...' },
     ];
@@ -61,11 +65,11 @@ export class MockSonarService implements SonarServiceInterface {
       uploadedAt: new Date().toISOString().replace('T', ' ').substring(0, 19) + ' UTC',
       status: 'COMPLETED',
       progress: 100,
-      detectionCount: 6,
+      detectionCount: 2,
       highPriorityCount: 2,
-      imageUrl: '/sonar-samples/scan-coastal-alpha.png',
-      imageWidth: 1600,
-      imageHeight: 900,
+      imageUrl: imageUrl || '/sonar-samples/scan-coastal-alpha.png',
+      imageWidth: imageSize?.width || 1600,
+      imageHeight: imageSize?.height || 900,
     };
 
     this.scans.unshift(newScan);

@@ -86,7 +86,7 @@ export const ProcessingTimeline: React.FC<ProcessingTimelineProps> = ({
 
       <div className="flex items-center justify-between pt-2 border-t border-white/8 text-xs font-mono">
         <span className="text-[11px] text-white/30">
-          Inference Engine: NEZA-YOLOv9-SSS (Dual-Frequency 410/600kHz)
+          Inference Engine: NEZA shipwreck detector
         </span>
         <div className="flex items-center gap-2">
           {onRetry && (

@@ -32,6 +32,8 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
   const [hoveredDetectionId, setHoveredDetectionId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasWidth = scan.imageWidth || 1600;
+  const canvasHeight = scan.imageHeight || 900;
 
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 0.25, 3.5));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 0.25, 0.5));
@@ -163,13 +165,13 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
             transition: isDragging ? 'none' : 'transform 0.08s ease-out',
-            width: '1600px',
-            height: '900px',
+            width: `${canvasWidth}px`,
+            height: `${canvasHeight}px`,
             position: 'absolute',
             top: '50%',
             left: '50%',
-            marginTop: '-450px',
-            marginLeft: '-800px',
+            marginTop: `${-canvasHeight / 2}px`,
+            marginLeft: `${-canvasWidth / 2}px`,
           }}
         >
           {/* Base Sonar Image Waterfall */}

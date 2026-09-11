@@ -16,7 +16,7 @@ import {
 export const DetectionDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { detections, setSelectedDetectionId } = useAppState();
+  const { detections, scans, setSelectedDetectionId, setSelectedScanId } = useAppState();
 
   const currentId = id || 'DET-001';
   const detection = detections.find((d) => d.id === currentId) || detections[0];
@@ -24,8 +24,12 @@ export const DetectionDetailsPage: React.FC = () => {
   const currentIndex = detections.findIndex((d) => d.id === detection.id);
   const prevDetection = currentIndex > 0 ? detections[currentIndex - 1] : null;
   const nextDetection = currentIndex < detections.length - 1 ? detections[currentIndex + 1] : null;
+  const detectionScan = scans.find((scan) => scan.id === detection.scanId);
+  const imageSrc = detection.cropUrl || detectionScan?.imageUrl || '/sonar-samples/crop-ghostnet.png';
 
   const navigateTo = (detId: string) => {
+    const target = detections.find((det) => det.id === detId);
+    if (target) setSelectedScanId(target.scanId);
     setSelectedDetectionId(detId);
     navigate(`/detection/${detId}`);
   };
@@ -93,7 +97,8 @@ export const DetectionDetailsPage: React.FC = () => {
 
             <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#070D1D] my-3">
               <img
-                src={detection.cropUrl || '/sonar-samples/crop-ghostnet.png'}
+                key={`${detection.id}-${imageSrc}`}
+                src={imageSrc}
                 alt={detection.classification}
                 className="w-full h-[360px] object-cover"
               />
@@ -203,7 +208,7 @@ export const DetectionDetailsPage: React.FC = () => {
               </div>
               <div className="flex justify-between">
                 <span>Inference Pipeline:</span>
-                <span className="text-white/60 font-semibold">YOLOv9-SSS (Dual-Band)</span>
+                <span className="text-white/60 font-semibold">{detection.modelName || 'NEZA shipwreck detector'}</span>
               </div>
             </div>
           </div>
