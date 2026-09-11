@@ -81,7 +81,7 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
           </span>
           <span className="text-white/20">|</span>
           <span className="text-[11px] text-white/40 truncate max-w-xs">
-            {scan.instrument} • {scan.frequencyKhz == null ? 'Frequency unavailable' : `${scan.frequencyKhz} kHz`}
+            {scan.instrument} • {scan.frequencyKhz} kHz
           </span>
         </div>
 
@@ -160,21 +160,21 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
         {/* Transform container for pan & zoom */}
         <div
           style={{
-            transform: `translate(${pan.x}px, ${pan.y}px) translateY(-50%) scale(${zoom})`,
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: 'center center',
             transition: isDragging ? 'none' : 'transform 0.08s ease-out',
-            width: '100%',
-            height: 'auto', aspectRatio: `${scan.imageWidth} / ${scan.imageHeight}`,
+            width: '1600px',
+            height: '900px',
             position: 'absolute',
             top: '50%',
-            left: '0',
-            marginTop: '0',
-            marginLeft: '0',
+            left: '50%',
+            marginTop: '-450px',
+            marginLeft: '-800px',
           }}
         >
           {/* Base Sonar Image Waterfall */}
           <img
-            src={scan.imageUrl || undefined}
+            src={scan.imageUrl}
             alt="Side Scan Sonar Swath"
             className="w-full h-full object-cover pointer-events-none select-none"
             draggable={false}
@@ -204,10 +204,10 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
                   onMouseLeave={() => setHoveredDetectionId(null)}
                   style={{
                     position: 'absolute',
-                    left: `${bx / scan.imageWidth * 100}%`,
-                    top: `${by / scan.imageHeight * 100}%`,
-                    width: `${bw / scan.imageWidth * 100}%`,
-                    height: `${bh / scan.imageHeight * 100}%`,
+                    left: `${bx}px`,
+                    top: `${by}px`,
+                    width: `${bw}px`,
+                    height: `${bh}px`,
                   }}
                   className={`cursor-pointer transition-all duration-150 rounded-xs ${boxBorder}`}
                 >
@@ -234,7 +234,7 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
                   {/* Dimensions badge inside box if selected */}
                   {isSelected && (
                     <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white border border-white/20">
-                      {Math.round(bw)} × {Math.round(bh)} px
+                      {det.dimensions.length}m × {det.dimensions.width}m
                     </div>
                   )}
                 </div>
@@ -245,7 +245,7 @@ export const SonarViewer: React.FC<SonarViewerProps> = ({
         {/* Viewport HUD Overlays */}
         <div className="absolute top-3 left-3 bg-black/70 border border-white/10 rounded p-2 text-[10px] font-mono text-white/60 pointer-events-none space-y-0.5 backdrop-blur-xs">
           <div>TRANSECT: {scan.surveyName.substring(0, 24)}...</div>
-          <div>SWATH ALT: {scan.altitudeMeters ?? 'Unavailable'} | RANGE: {scan.rangeMeters ?? 'Unavailable'}</div>
+          <div>SWATH ALT: {scan.altitudeMeters}m | RANGE: {scan.rangeMeters}m</div>
           <div className="text-white font-bold">
             {detections.length} ANOMALIES MAPPED
           </div>

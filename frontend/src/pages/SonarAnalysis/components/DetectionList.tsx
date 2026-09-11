@@ -81,7 +81,7 @@ export const DetectionList: React.FC<DetectionListProps> = ({
 
               <div className="pt-2 border-t border-white/8 flex items-center justify-between">
                 <span className="text-[10px] font-mono text-white/35">
-                  {Math.round(det.bbox[2])} × {Math.round(det.bbox[3])} px
+                  {det.dimensions.length}m × {det.dimensions.width}m
                 </span>
                 <button
                   type="button"

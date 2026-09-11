@@ -10,7 +10,7 @@ import {
 export const ProfilePage: React.FC = () => {
   const { user, detections } = useAppState();
 
-  const verifiedCount = detections.filter((d) => d.verificationStatus === 'CONFIRMED').length;
+  const verifiedCount = detections.filter((d) => d.verificationStatus === 'VERIFIED').length;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto animate-fade-in">

@@ -21,7 +21,7 @@ export const AnalyticsPage: React.FC = () => {
 
   const totalDetections = filteredDetections.length;
   const highPriority = filteredDetections.filter((d) => d.priority === 'HIGH').length;
-  const verified = filteredDetections.filter((d) => d.verificationStatus === 'CONFIRMED').length;
+  const verified = filteredDetections.filter((d) => d.verificationStatus === 'VERIFIED').length;
   const rejected = filteredDetections.filter((d) => d.verificationStatus === 'REJECTED').length;
   const pending = filteredDetections.filter((d) => d.verificationStatus === 'PENDING').length;
 
