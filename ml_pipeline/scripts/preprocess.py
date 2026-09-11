@@ -1,43 +1,36 @@
-#!/usr/bin/env python3
+"""Compatibility entry point for AI4Shipwrecks preparation.
+
+The real dataset-cleaning implementation is maintained in
+prepare_ai4shipwrecks.py. This wrapper prevents the old placeholder script
+from silently reporting success without processing any data.
 """
-Data preprocessing script for NEZA AI
-Converts raw datasets to YOLO and U-Net formats
-"""
-import os
-import cv2
-import numpy as np
+
 from pathlib import Path
-import shutil
-import json
-from tqdm import tqdm
-import yaml
+import subprocess
+import sys
 
-def preprocess_ai4shipwrecks(raw_dir, output_dir):
-    """Preprocess AI4Shipwrecks dataset"""
-    print("📊 Preprocessing AI4Shipwrecks...")
-    # Add your preprocessing logic here
-    pass
 
-def preprocess_seaclear(raw_dir, output_dir):
-    """Preprocess SeaClear dataset"""
-    print("📊 Preprocessing SeaClear...")
-    # Add your preprocessing logic here
-    pass
+SCRIPT_DIRECTORY = Path(__file__).resolve().parent
+PREPARATION_SCRIPT = SCRIPT_DIRECTORY / "prepare_ai4shipwrecks.py"
 
-def main():
-    raw_dir = Path("data/raw")
-    output_dir = Path("data/processed")
-    output_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Create train/val/test splits
-    for split in ['train', 'val', 'test']:
-        (output_dir / split).mkdir(exist_ok=True)
-    
-    # Process each dataset
-    preprocess_ai4shipwrecks(raw_dir / "ai4shipwrecks", output_dir)
-    preprocess_seaclear(raw_dir / "seaclear", output_dir)
-    
-    print("✅ Preprocessing complete!")
+
+def main() -> None:
+    if not PREPARATION_SCRIPT.is_file():
+        raise FileNotFoundError(
+            f"Preparation script not found: {PREPARATION_SCRIPT}"
+        )
+
+    command = [
+        sys.executable,
+        str(PREPARATION_SCRIPT),
+        *sys.argv[1:],
+    ]
+
+    completed = subprocess.run(command, check=False)
+
+    if completed.returncode != 0:
+        raise SystemExit(completed.returncode)
+
 
 if __name__ == "__main__":
     main()

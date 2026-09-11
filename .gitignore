@@ -87,3 +87,6 @@ logs/
 # Uploads
 uploads/
 reports/
+
+# Generated ML training outputs
+/runs/

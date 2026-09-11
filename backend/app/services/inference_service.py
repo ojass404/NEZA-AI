@@ -1,134 +1,93 @@
-"""
-Inference Service - Main integration point for NEZA AI
-Uses trained YOLO model for detection
-"""
-import sys
+"""Backend integration service for the trained NEZA AI detector."""
+
 from pathlib import Path
-import numpy as np
-import cv2
+from typing import Any
 import logging
 
-# Add core modules to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+import numpy as np
 
 from app.core.detection.yolo_detector import YOLODetector
-from app.core.detection.unet_segmentor import UNetSegmentor
-from app.core.preprocessing.noise_filter import SonarPreprocessor
-from app.core.verification.confidence import ConfidenceScorer
-from app.core.verification.priority import PriorityAssigner
 
 logger = logging.getLogger(__name__)
 
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_MODEL = PROJECT_ROOT / "backend/models/yolov8n_sss.pt"
+
+
 class InferenceService:
-    def __init__(self, model_path: str = None):
-        """
-        Initialize Inference Service
-        
-        Args:
-            model_path: Optional path to trained model
-                       Defaults to backend/models/yolov8n_sss.pt
-        """
-        logger.info("🚀 Initializing InferenceService...")
-        
-        # Get project root
-        project_root = "/Users/ojasmahajan/Public/Projects/NEZA-AI"
-        
-        # Use provided model path or default
-        if model_path is None:
-            model_path = f"{project_root}/backend/models/yolov8n_sss.pt"
-        
-        yolo_path = Path(model_path)
-        unet_path = Path(f"{project_root}/backend/models/unet_resnet50_sss.pth")
-        
-        logger.info(f"YOLO model path: {yolo_path}")
-        logger.info(f"U-Net model path: {unet_path}")
-        
-        try:
-            self.preprocessor = SonarPreprocessor()
-            self.yolo = YOLODetector(str(yolo_path))
-            self.unet = UNetSegmentor(str(unet_path) if unet_path.exists() else None)
-            self.scorer = ConfidenceScorer()
-            self.prioritizer = PriorityAssigner()
-            logger.info("✅ All components initialized successfully")
-        except Exception as e:
-            logger.error(f"❌ Failed to initialize: {e}")
-            raise
-    
-    def process_image(self, image: np.ndarray, metadata: dict = None) -> dict:
-        """Process image through complete pipeline"""
-        if metadata is None:
-            metadata = {}
-        
-        logger.info("📊 Processing image...")
-        
-        # 1. Preprocess
-        enhanced = self.preprocessor.pipeline(image)
-        
-        # 2. YOLO Detection
-        yolo_results = self.yolo.detect(enhanced)
-        
-        # 3. U-Net Segmentation
-        mask = self.unet.segment(enhanced) if self.unet else None
-        mask_coverage = np.mean(mask > 0) if mask is not None else 0
-        
-        # 4. Process each detection
-        detections = []
-        for det in yolo_results:
-            confidence = self.scorer.calculate(
-                det['confidence'],
-                mask_coverage,
-                shadow_score=0.5
-            )
-            
-            priority = self.prioritizer.assign(confidence, det['class'])
-            
-            detection = {
-                'id': f"det_{len(detections) + 1:04d}",
-                'class': det['class'],
-                'confidence': confidence,
-                'priority': priority,
-                'bbox': det['bbox'],
-                'latitude': metadata.get('latitude'),
-                'longitude': metadata.get('longitude'),
-                'mask_coverage': mask_coverage
-            }
-            detections.append(detection)
-        
-        # 5. Generate summary
-        summary = self._generate_summary(detections)
-        
-        result = {
-            'detections': detections,
-            'summary': summary,
-            'metadata': metadata
-        }
-        
-        logger.info(f"✅ Processing complete. Found {len(detections)} detections")
-        return result
-    
-    def _generate_summary(self, detections: list) -> dict:
-        """Generate summary statistics"""
-        if not detections:
-            return {
-                'total_detections': 0,
-                'high_priority': 0,
-                'medium_priority': 0,
-                'low_priority': 0,
-                'avg_confidence': 0,
-                'classes': {}
-            }
-        
-        priorities = {'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
-        classes = {}
-        for det in detections:
-            priorities[det['priority']] = priorities.get(det['priority'], 0) + 1
-            classes[det['class']] = classes.get(det['class'], 0) + 1
-        
+    """Run verified YOLO detection without simulated ML components."""
+
+    def __init__(
+        self,
+        model_path: str | Path | None = None,
+        confidence_threshold: float = 0.20,
+        iou_threshold: float = 0.30,
+    ) -> None:
+        selected_model = (
+            Path(model_path).expanduser().resolve()
+            if model_path is not None
+            else DEFAULT_MODEL
+        )
+
+        self.detector = YOLODetector(
+            model_path=str(selected_model),
+            confidence_threshold=confidence_threshold,
+            iou_threshold=iou_threshold,
+        )
+
+        logger.info(
+            "InferenceService initialized with %s",
+            selected_model,
+        )
+
+    def process_image(
+        self,
+        image: np.ndarray,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Detect candidates and return a backend-safe result."""
+        metadata = dict(metadata or {})
+        detections = self.detector.detect(image)
+
+        for index, detection in enumerate(detections, start=1):
+            detection["id"] = f"det_{index:04d}"
+            detection["latitude"] = metadata.get("latitude")
+            detection["longitude"] = metadata.get("longitude")
+
         return {
-            'total_detections': len(detections),
-            'high_priority': priorities['HIGH'],
-            'medium_priority': priorities['MEDIUM'],
-            'low_priority': priorities['LOW'],
-            'avg_confidence': round(sum(d['confidence'] for d in detections) / len(detections), 1),
-            'classes': classes
+            "task": (
+                "Detection of possible shipwreck or artificial-anomaly "
+                "candidates in side-scan sonar imagery"
+            ),
+            "model": {
+                "path": str(self.detector.model_path),
+                "device": self.detector.device,
+                "confidence_threshold": (
+                    self.detector.confidence_threshold
+                ),
+                "iou_threshold": self.detector.iou_threshold,
+            },
+            "detections": detections,
+            "summary": {
+                "total_detections": len(detections),
+                "human_verification_required": True,
+            },
+            "metadata": metadata,
+            "limitations": [
+                (
+                    "The current model was trained only on "
+                    "AI4Shipwrecks imagery."
+                ),
+                (
+                    "The model does not reliably identify ghost nets, "
+                    "pipes, cylinders or general marine debris."
+                ),
+                (
+                    "Every detection requires human verification."
+                ),
+                (
+                    "Semantic segmentation is not enabled because no "
+                    "verified trained segmentation model is available."
+                ),
+            ],
         }
