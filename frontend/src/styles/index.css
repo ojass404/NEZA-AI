@@ -1,0 +1,101 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-earth: #0000009d;
+  --color-royal: #141f3653;
+  --color-cobalt: #3361AC;
+  --color-buttercup: #E8AF30;
+  --color-gold: #E8C766;
+  --color-vintage: #E7E6DD;
+}
+
+body {
+  margin: 0;
+  background-color: #F8FAFC;
+  color: #0F2043;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Light theme subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2b334256;
+}
+
+/* Clean grid background for light theme */
+.bg-light-grid {
+  background-size: 32px 32px;
+  background-image:
+    linear-gradient(to right, rgba(51, 97, 172, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(51, 97, 172, 0.05) 1px, transparent 1px);
+}
+
+/* Crosshair cursor for sonar viewer */
+.cursor-crosshair-sonar {
+  cursor: crosshair;
+}
+
+/* MapLibre custom popup restyling for light theme */
+.maplibregl-popup-content {
+  background-color: #FFFFFF !important;
+  color: #0F2043 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 28px rgba(15, 32, 67, 0.15) !important;
+  padding: 14px 16px !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: #FFFFFF !important;
+}
+
+.maplibregl-popup-close-button {
+  color: #64748B !important;
+  font-size: 16px !important;
+  padding: 6px 8px !important;
+}
+
+.maplibregl-popup-close-button:hover {
+  background: transparent !important;
+  color: #0F2043 !important;
+}
+
+/* Smooth keyframes */
+@keyframes pulseRadar {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-radar {
+  animation: pulseRadar 2.5s infinite ease-in-out;
+}

@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450">
+  <defs>
+    <radialGradient id="cropBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1E3258" />
+      <stop offset="70%" stop-color="#122244" />
+      <stop offset="100%" stop-color="#0B152A" />
+    </radialGradient>
+    <pattern id="cropGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+      <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#3361AC" stroke-width="0.5" opacity="0.3" />
+    </pattern>
+  </defs>
+
+  <rect width="600" height="450" fill="url(#cropBg)" />
+  <rect width="600" height="450" fill="url(#cropGrid)" />
+
+  <!-- Acoustic Shadow (Dark extinction behind net) -->
+  <polygon points="340,160 520,120 540,320 360,330" fill="#040813" opacity="0.95" />
+  
+  <!-- High Backscatter Complex Webbing (Ghost Net Body) -->
+  <g transform="translate(140, 150)">
+    <!-- Entangled mesh paths -->
+    <path d="M 20,40 Q 60,10 120,30 T 220,50 T 200,140 T 100,160 T 30,120 Z" fill="#E8AF30" opacity="0.85" />
+    <path d="M 40,60 Q 90,40 140,70 T 190,120" stroke="#FFF" stroke-width="2.5" fill="none" opacity="0.9" />
+    <path d="M 50,110 Q 110,80 170,100" stroke="#FDE047" stroke-width="2" fill="none" opacity="0.8" />
+    <path d="M 80,40 L 100,150 M 130,35 L 140,155 M 170,45 L 160,140" stroke="#E8C766" stroke-width="1.2" opacity="0.75" />
+  </g>
+
+  <!-- Caliper overlays -->
+  <line x1="130" y1="120" x2="370" y2="120" stroke="#E8AF30" stroke-width="1.5" />
+  <line x1="130" y1="114" x2="130" y2="126" stroke="#E8AF30" stroke-width="1.5" />
+  <line x1="370" y1="114" x2="370" y2="126" stroke="#E8AF30" stroke-width="1.5" />
+  <text x="250" y="110" fill="#E8AF30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle">L: 3.2 m</text>
+
+  <line x1="110" y1="140" x2="110" y2="310" stroke="#E8AF30" stroke-width="1.5" />
+  <line x1="104" y1="140" x2="116" y2="140" stroke="#E8AF30" stroke-width="1.5" />
+  <line x1="104" y1="310" x2="116" y2="310" stroke="#E8AF30" stroke-width="1.5" />
+  <text x="96" y="230" fill="#E8AF30" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" transform="rotate(-90 96 230)">W: 1.4 m</text>
+
+  <!-- Shadow dimension caliper -->
+  <line x1="370" y1="350" x2="540" y2="350" stroke="#E8C766" stroke-width="1.2" stroke-dasharray="4,3" />
+  <text x="455" y="370" fill="#E8C766" font-family="monospace" font-size="11" text-anchor="middle">Shadow Length: 2.1 m (H: 0.8m)</text>
+
+  <!-- Crosshair target center -->
+  <circle cx="250" cy="235" r="16" stroke="#E8AF30" stroke-width="1.5" fill="none" stroke-dasharray="3,3" />
+  <line x1="250" y1="210" x2="250" y2="260" stroke="#E8AF30" stroke-width="1" />
+  <line x1="225" y1="235" x2="275" y2="235" stroke="#E8AF30" stroke-width="1" />
+  <circle cx="250" cy="235" r="3" fill="#E8AF30" />
+</svg>
